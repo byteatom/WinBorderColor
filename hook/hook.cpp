@@ -15,17 +15,18 @@ extern "C" LRESULT CALLBACK callWndProcRet(
     auto cwpRets = (PCWPRETSTRUCT)lParam;
     auto msg = cwpRets->message;
     auto hwnd = cwpRets->hwnd;
-    auto style = GetWindowLong(hwnd, GWL_STYLE);
 
-    if (nCode < 0
-        || !((style & WS_OVERLAPPED) || (style & WS_OVERLAPPEDWINDOW))
-        || !(msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_SHOWWINDOW))
-        return CallNextHookEx(0, nCode, wParam, lParam);
-
-    const COLORREF borderColor = 0x00008800;
-    auto result = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &borderColor, sizeof(borderColor));
-    if (result != S_OK)
-        winLog("DwmSetWindowAttribute:{:x}", result);
+    if (nCode >= 0
+        && (msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE || msg == WM_SETFOCUS || msg == WM_KILLFOCUS)
+        && !(GetWindowLong(hwnd, GWL_STYLE) & WS_CHILD)
+        && !GetParent(hwnd)
+        )
+    {
+        const COLORREF borderColor = 0x00008800;
+        auto result = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &borderColor, sizeof(borderColor));
+        if (result != S_OK)
+            winLog("DwmSetWindowAttribute:{:x}", result);
+    }
 
     return CallNextHookEx(0, nCode, wParam, lParam);
 }

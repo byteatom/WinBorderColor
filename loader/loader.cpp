@@ -4,6 +4,8 @@
 
 #include "winutil.h"
 
+//The window and message loop are designed to wait for taskkill's WM_CLOSE and exit gracefully by calling UnhookWindowsHookEx
+
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
