@@ -12,9 +12,9 @@ extern "C" LRESULT CALLBACK callWndProcRet(
     
     #pragma EXPORT_FUNC
 
-    auto cwpRets = (PCWPRETSTRUCT)lParam;
-    auto msg = cwpRets->message;
-    auto hwnd = cwpRets->hwnd;
+    auto cwpRet = (PCWPRETSTRUCT)lParam;
+    auto msg = cwpRet->message;
+    auto hwnd = cwpRet->hwnd;
 
     if (nCode >= 0
         && (msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE || msg == WM_SETFOCUS || msg == WM_KILLFOCUS)

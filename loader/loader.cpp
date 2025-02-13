@@ -4,7 +4,7 @@
 
 #include "winutil.h"
 
-//The window and message loop are designed to wait for taskkill's WM_CLOSE and exit gracefully by calling UnhookWindowsHookEx
+//The window and message loop are designed to wait for WM_CLOSE from taskkill and exit gracefully by calling UnhookWindowsHookEx
 
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -33,9 +33,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     wcex.lpszClassName = className;
     RegisterClassExW(&wcex);
 
-    auto wnd = CreateWindowW(className, L"", 0,
+    auto hwnd = CreateWindowW(className, L"", 0,
         CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
-    if (!wnd) {
+    if (!hwnd) {
         winLogLastError("CreateWindowW");
         return FALSE;
     }
