@@ -33,10 +33,6 @@ If you want to run it automatically when windows starts up, create a task in the
 1. Customize border color by configuration file
 2. Use different colors for the foreground and background window
 
-## Known issues
-
-1. No effect on PowerPoint window, it even don't adhere to the system theme color. I don't know why, ask microsoft.
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details
