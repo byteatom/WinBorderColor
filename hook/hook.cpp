@@ -38,7 +38,7 @@ extern "C" LRESULT CALLBACK callWndProcRet(
     auto hwnd = cwpRet->hwnd;
 
     if (nCode >= 0
-        && (msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE || msg == WM_SETFOCUS || msg == WM_KILLFOCUS)
+        && (msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE)
         && !(GetWindowLong(hwnd, GWL_STYLE) & WS_CHILD)
         && !GetParent(hwnd)
         )
@@ -46,7 +46,6 @@ extern "C" LRESULT CALLBACK callWndProcRet(
         auto wParamMsg = cwpRet->wParam;
         auto color = (msg == WM_ACTIVATE && LOWORD(wParamMsg) != WA_INACTIVE)
                 || ((msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE) && wParamMsg)
-                || (msg == WM_SETFOCUS)
             ? foregroundColor
             : backgroundColor;
         auto result = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &color, sizeof(color));
