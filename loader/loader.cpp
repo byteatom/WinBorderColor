@@ -1,6 +1,7 @@
 ﻿#include <SDKDDKVer.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <tchar.h>
 
 #include "winutil.h"
 
@@ -24,19 +25,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ LPWSTR    lpCmdLine,
     _In_ int       nCmdShow)
 {
-    const wchar_t className[] = L"MainWnd";    
+    const wchar_t className[] = _T("MainWnd");
 
     WNDCLASSEXW wcex = {};
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.lpfnWndProc = MainWndProc;
     wcex.hInstance = hInstance;
     wcex.lpszClassName = className;
-    RegisterClassExW(&wcex);
+    RegisterClassEx(&wcex);
 
-    auto hwnd = CreateWindowW(className, L"", 0,
+    auto hwnd = CreateWindow(className, _T(""), 0,
         CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
     if (!hwnd) {
-        winLogLastError("CreateWindowW");
+        winLogLastError("CreateWindow");
         return FALSE;
     }
 
@@ -46,9 +47,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         winLogLastError("IsWow64Process2");
         return FALSE;
     }
-    auto dll = LoadLibraryW(processMachine == IMAGE_FILE_MACHINE_I386 ? L"hook32.dll" : L"hook64.dll");
+    auto dll = LoadLibrary(processMachine == IMAGE_FILE_MACHINE_I386 ? _T("WinBorderColorHook_x86.dll") : _T("WinBorderColorHook_x64.dll"));
     if (!dll) {
-        winLogLastError("LoadLibraryW");
+        winLogLastError("LoadLibrary");
         return FALSE;
     }
 
@@ -58,16 +59,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    auto callWndProcRetHook = SetWindowsHookExW(WH_CALLWNDPROCRET, callWndProcRet, dll, 0);
+    auto callWndProcRetHook = SetWindowsHookEx(WH_CALLWNDPROCRET, callWndProcRet, dll, 0);
     if (!callWndProcRetHook) {
-        winLogLastError("SetWindowsHookExW");
+        winLogLastError("SetWindowsHookEx");
         return FALSE;
     }
 
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0))
     {
-        TranslateMessage(&msg);        
+        TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 

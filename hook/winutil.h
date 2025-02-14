@@ -2,10 +2,18 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <tchar.h>
+
+#include <string>
+namespace std
+{
+	typedef basic_string<TCHAR>   tstring;
+};
 
 #include <unordered_map>
-#include <string>
 #include <format>
+#include <filesystem>
+namespace  fs = std::filesystem;
 
 #define EXPORT_FUNC comment(linker, "/EXPORT:" __FUNCTION__"=" __FUNCDNAME__)
 
@@ -18,7 +26,7 @@ void winLog(std::format_string<Args...> format, Args&&... args) {
 	winLog(std::format(format, std::forward<Args>(args)...));
 }
 
-inline std::string winLastErrorText() {
+inline std::string getLastErrorText() {
 	DWORD error = GetLastError();
 	LPSTR lpMsgBuf = nullptr;
 	DWORD bufLen = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -43,10 +51,35 @@ template<class... Args>
 void winLogLastError(std::format_string<Args...> format, Args&&... args) {
 	winLog(std::format(format, std::forward<Args>(args)...)
 		.append(":")
-		.append(winLastErrorText()));
+		.append(getLastErrorText()));
 }
 
-inline std::string winMsgName(unsigned int msg) {
+inline std::tstring getModulePath(HMODULE hModule) {
+	std::tstring modulePath(512, 0);
+	while (true) {
+		auto imagePathSize = GetModuleFileName(hModule, modulePath.data(), (DWORD)modulePath.size());
+		if (imagePathSize == 0) {
+			winLogLastError("GetModuleFileName");
+			return std::tstring();
+		}
+		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+			modulePath = std::tstring(modulePath, 0, imagePathSize);
+			break;
+		}
+		modulePath = std::tstring(modulePath.size() * 2, 0);
+	};
+	return modulePath;
+}
+
+inline fs::path getModuleDir(const std::tstring& modulePath) {
+	return fs::path(modulePath).parent_path();
+}
+
+inline fs::path getModuleDir(HMODULE hModule) {
+	return getModuleDir(getModulePath(hModule));
+}
+
+inline std::string getMsgName(unsigned int msg) {
 	static const std::unordered_map<unsigned int, const char*> msgNames = {
 	{0x0000, "WM_NULL"},
 	{0x0001, "WM_CREATE"},
@@ -797,5 +830,5 @@ inline std::string winMsgName(unsigned int msg) {
 }
 
 inline void winLogMsg(unsigned int msg) {
-	winLog(winMsgName(msg));
+	winLog(getMsgName(msg));
 }
