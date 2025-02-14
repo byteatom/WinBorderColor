@@ -19,7 +19,9 @@ Hopefully Microsoft will improve these issues in the future and this program wil
 
 ## Usage
 
-Just run WinBorderColor32.exe and WinBorderColor64.exe both as administrator[^1].
+Install [visual c++ 2022 runtime](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170) both for x86 and x64 before first-time run.
+
+Run WinBorderColor32.exe and WinBorderColor64.exe both as administrator[^1].
 
 If you want to run it automatically when windows starts up, create a task in the Task Scheduler for each program and select the following two options:
 
@@ -28,10 +30,10 @@ If you want to run it automatically when windows starts up, create a task in the
 
 > [^1] Some apps, such as Task Manager, require administrator/highest privileges.
 
-## TODO
+## Config
 
-1. Customize border color by configuration file
-2. Use different colors for the foreground and background window
+You can customize the colors of the forground and background window by editing the WinBorderColor.ini file.  
+The color format is 0x00bbggrr. 0xFFFFFFFE means no border. 0xFFFFFFFF means the default color of the system.
 
 ## License
 
