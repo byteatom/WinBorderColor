@@ -1,6 +1,7 @@
 # Window Border Color
 
 Set the border color of all top-level window for Windows 11 Build 22000 and later.
+![](/screenshot/after.jpg)
 
 ## Description
 
@@ -11,9 +12,7 @@ The screenshot below shows some of the issues when using red as the theme color:
 -   Only the top-most window uses the theme color as the border color; other windows have a gray border color, which is difficult to distinguish in dark mode.
 -   Many of top-most window don't adhere to the theme color, including electron based apps such as Visual Studio Code and so on.
 
-This program helps to mitigating these issues:
-![](/screenshot/after.jpg)
-This program hooks all top-level window and calls DwmSetWindowAttribute with DWMWA_BORDER_COLOR(which only support Windows 11 Build 22000 and later) when the window switches between active and inactive
+This program helps to mitigating these issues by hooks all top-level window and calls DwmSetWindowAttribute with DWMWA_BORDER_COLOR(which only support Windows 11 Build 22000 and later) when the window switches between active and inactive
 
 Hopefully Microsoft will improve these issues in the future and this program will no longer be needed
 
