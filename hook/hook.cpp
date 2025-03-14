@@ -4,7 +4,7 @@
 
 #include "winutil.h"
 
-const HMODULE getCurrentModule()
+HMODULE getCurrentModule()
 {
     HMODULE hModule = NULL;
     GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
@@ -13,13 +13,27 @@ const HMODULE getCurrentModule()
     return hModule;
 }
 
-inline fs::path getCfgPath() {
+inline auto getCfgPath() {
     return getModuleDir(getCurrentModule()) / _T("WinBorderColor.ini");
 }
 
-UINT getIntCfg(LPCWSTR lpKeyName, INT nDefault) {
-    static const fs::path cfgPath = getCfgPath();
+auto getIntCfg(LPCWSTR lpKeyName, INT nDefault) {
+    static const auto cfgPath = getCfgPath();
     return GetPrivateProfileInt(_T("app"), lpKeyName, nDefault, cfgPath.c_str());
+}
+
+VOID CALLBACK timerProc(
+    HWND hwnd, 
+    UINT msg,
+    UINT_PTR id,
+    DWORD time)
+{
+    HRESULT result;
+    auto color = (LPCOLORREF)id;
+    result = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, color, sizeof(*color));
+    if (result != S_OK)
+        winLog("DwmSetWindowAttribute:{:x}", result);
+    KillTimer(hwnd, id);
 }
 
 extern "C" LRESULT CALLBACK callWndProcRet(
@@ -27,18 +41,17 @@ extern "C" LRESULT CALLBACK callWndProcRet(
     WPARAM wParam,
     LPARAM lParam
 ) {
-
     #pragma EXPORT_FUNC
 
-    static auto foregroundColor = getIntCfg(_T("foregroundColor"), 0x00000088);
-    static auto backgroundColor = getIntCfg(_T("backgroundColor"), 0x00009900);
+    static const COLORREF fgColor = getIntCfg(_T("foregroundColor"), 0x00000088);
+    static const COLORREF bgColor = getIntCfg(_T("backgroundColor"), 0x00009900);
 
     auto cwpRet = (PCWPRETSTRUCT)lParam;
     auto msg = cwpRet->message;
     auto hwnd = cwpRet->hwnd;
 
     if (nCode >= 0
-        && (msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE)
+        && (msg == WM_ACTIVATE || msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE || msg == WM_SETFOCUS || msg == WM_KILLFOCUS)
         && !(GetWindowLong(hwnd, GWL_STYLE) & WS_CHILD)
         && !GetParent(hwnd)
         )
@@ -46,11 +59,23 @@ extern "C" LRESULT CALLBACK callWndProcRet(
         auto wParamMsg = cwpRet->wParam;
         auto color = (msg == WM_ACTIVATE && LOWORD(wParamMsg) != WA_INACTIVE)
                 || ((msg == WM_ACTIVATEAPP || msg == WM_NCACTIVATE) && wParamMsg)
-            ? foregroundColor
-            : backgroundColor;
-        auto result = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &color, sizeof(color));
+                || (msg == WM_SETFOCUS)
+            ? &fgColor
+            : &bgColor;
+        HRESULT result;
+
+        result = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, color, sizeof(*color));
         if (result != S_OK)
             winLog("DwmSetWindowAttribute:{:x}", result);
+
+        KillTimer(hwnd, (UINT_PTR)&fgColor);
+        KillTimer(hwnd, (UINT_PTR)&bgColor);
+        result = SetTimer(hwnd,
+            (UINT_PTR)color,
+            1000,
+            (TIMERPROC)timerProc);
+        if (result == 0)
+            winLogLastError("SetTimer");
     }
 
     return CallNextHookEx(0, nCode, wParam, lParam);
